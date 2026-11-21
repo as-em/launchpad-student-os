@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Launchpad OS — Smarter Student OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #d3d1cb; border-radius: 9999px; }
+    </style>
+  </head>
+  <body class="bg-[#fbfbfa] text-[#37352f] antialiased selection:bg-blue-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useMemo } = React;
+
+      const initialOpportunities = [
+        {
+          id: 'opp-1',
+          title: 'Software Engineering Intern (STEP)',
+          org: 'Google',
+          type: 'Internship',
+          status: 'Interview',
+          deadline: '2026-12-05',
+          skills: ['Python', 'React', 'Algorithms'],
+          description:
+            'Looking for second-year Computer Science students with strong foundations in data structures, Python, React, and collaborative software development.',
+        },
+        {
+          id: 'opp-2',
+          title: 'Technical Lead — Autonomous Robotics',
+          org: 'Campus Robotics Society',
+          type: 'Club Role',
+          status: 'Offer',
+          deadline: '2026-11-25',
+          skills: ['Python', 'Leadership', 'C++'],
+          description:
+            'Lead a 12-student engineering sub-team building computer vision pipelines and path planning algorithms for national collegiate competitions.',
+        },
+        {
+          id: 'opp-3',
+          title: 'Product Management Intern',
+          org: 'Stripe',
+          type: 'Internship',
+          status: 'Applied',
+          deadline: '2026-12-12',
+          skills: ['Product', 'Analytics', 'React'],
+          description:
+            'Work alongside engineering and design to ship developer-first financial tools. Requires user research, SQL/analytics, and clear technical communication.',
+        },
+        {
+          id: 'opp-4',
+          title: 'Undergraduate AI Research Fellow',
+          org: 'University Vision Lab',
+          type: 'Research',
+          status: 'Wishlist',
+          deadline: '2026-12-18',
+          skills: ['Python', 'Machine Learning', 'PyTorch'],
+          description:
+            'Assist PhD candidates on multimodal learning benchmarks. Experience with Python, PyTorch, and reading ML papers preferred.',
+        },
+      ];
+
+      const initialExperiences = [
+        {
+          id: 'exp-1',
+          title: 'Campus Shuttle Live Tracker',
+          impactMetric: '1,400+ active student users',
+          skills: ['React', 'Python', 'APIs'],
+          bullet:
+            'Built a real-time campus bus tracking web app using React and Python FastAPI, reducing average student wait times by 40% across 1,400+ active weekly users.',
+        },
+        {
+          id: 'exp-2',
+          title: 'Hackathon Organizing Committee',
+          impactMetric: '$18,000 sponsorship raised',
+          skills: ['Leadership', 'Product', 'Communication'],
+          bullet:
+            'Coordinated logistics and secured $18,000 in corporate sponsorships for a 350-student annual hackathon with a 96% participant satisfaction score.',
+        },
+        {
+          id: 'exp-3',
+          title: 'Computer Vision Lane Detector',
+          impactMetric: '32 FPS on edge hardware',
+          skills: ['Python', 'C++', 'Machine Learning', 'PyTorch'],
+          bullet:
+            'Optimized an OpenCV and PyTorch lane-segmentation model to run at 32 FPS on Jetson Nano hardware for the autonomous rover prototype.',
+        },
+        {
+          id: 'exp-4',
+          title: 'Peer Data Structures Mentor',
+          impactMetric: '45 students mentored',
+          skills: ['Algorithms', 'Python', 'Leadership'],
+          bullet:
+            'Led weekly algorithm problem-solving workshops for 45 undergraduates, improving average midterm exam scores by 14%.',
+        },
+      ];
+
+      const initialContacts = [
+        {
+          id: 'con-1',
+          name: 'Sarah Jenkins',
+          role: 'University Recruiter',
+          org: 'Google',
+          lastContactedDaysAgo: 18,
+          notes: 'Met at Fall Career Fair; asked me to send updated resume after midterms.',
+        },
+        {
+          id: 'con-2',
+          name: 'Arjun Patel',
+          role: 'Alumni Software Engineer',
+          org: 'Stripe',
+          lastContactedDaysAgo: 4,
+          notes: 'Had a 20-min coffee chat; gave referral link and PM interview prep tips.',
+        },
+        {
+          id: 'con-3',
+          name: 'Dr. Elena Rostova',
+          role: 'Associate Professor (CS)',
+          org: 'University Vision Lab',
+          lastContactedDaysAgo: 21,
+          notes: 'Expressed interest in my robotics vision project; need to follow up about Spring RA slot.',
+        },
+        {
+          id: 'con-4',
+          name: 'Marcus Vance',
+          role: 'President',
+          org: 'Campus Robotics Society',
+          lastContactedDaysAgo: 2,
+          notes: 'Confirmed onboarding meeting for Technical Lead role next Tuesday.',
+        },
+      ];
+
+      const initialTasks = [
+        {
+          id: 'task-1',
+          title: 'Complete CS301 Dynamic Programming Problem Set',
+          courseOrTag: 'CS301 • Academics',
+          dueDate: 'Tomorrow',
+          energy: 'High',
+          done: false,
+        },
+        {
+          id: 'task-2',
+          title: 'Draft system design notes for Google STEP mock interview',
+          courseOrTag: 'Career • Prep',
+          dueDate: 'Nov 24',
+          energy: 'High',
+          done: false,
+        },
+        {
+          id: 'task-3',
+          title: 'Send follow-up email to Sarah Jenkins (Google Recruiter)',
+          courseOrTag: 'Networking • 5m',
+          dueDate: 'Today',
+          energy: 'Low',
+          done: false,
+        },
+        {
+          id: 'task-4',
+          title: 'Upload signed club officer form to student portal',
+          courseOrTag: 'Robotics Club • 10m',
+          dueDate: 'Nov 23',
+          energy: 'Low',
+          done: false,
+        },
+        {
+          id: 'task-5',
+          title: 'Update GitHub README with live demo GIF',
+          courseOrTag: 'Portfolio • 15m',
+          dueDate: 'Nov 25',
+          energy: 'Low',
+          done: true,
+        },
+      ];
+
+      const STAGES = ['Wishlist', 'Applied', 'Interview', 'Offer'];
+      const STAGE_BADGE = {
+        Wishlist: 'bg-stone-100 text-stone-700 border-stone-200',
+        Applied: 'bg-blue-50 text-blue-700 border-blue-200',
+        Interview: 'bg-amber-50 text-amber-700 border-amber-200',
+        Offer: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      };
+
+      function loadState(key, fallback) {
+        try {
+          const saved = localStorage.getItem(key);
+          return saved ? JSON.parse(saved) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function ResumeBuilderModal({ opportunity, experiences, onClose }) {
+        const [jobDesc, setJobDesc] = useState(opportunity?.description || '');
+        const [copied, setCopied] = useState(false);
+
+        const matchedExperiences = useMemo(() => {
+          const text = (jobDesc + ' ' + (opportunity?.skills || []).join(' ')).toLowerCase();
+          return experiences
+            .map((exp) => {
+              const matches = exp.skills.filter((skill) => text.includes(skill.toLowerCase()));
+              return { ...exp, score: matches.length, matchedSkills: matches };
+            })
+            .sort((a, b) => b.score - a.score);
+        }, [jobDesc, opportunity, experiences]);
+
+        const topExperiences = matchedExperiences.filter((e) => e.score > 0);
+        const selectedList = topExperiences.length > 0 ? topExperiences : matchedExperiences.slice(0, 2);
+
+        const generatedPitch = useMemo(() => {
+          const skillsList =
+            selectedList
+              .flatMap((e) => (e.matchedSkills.length ? e.matchedSkills : e.skills.slice(0, 2)))
+              .filter((v, i, a) => a.indexOf(v) === i)
+              .slice(0, 4)
+              .join(', ') || 'problem-solving and execution';
+
+          return `Hi ${opportunity?.org || 'Hiring'} Team,\n\nI'm excited to apply for the ${
+            opportunity?.title || 'Role'
+          } position. Through hands-on work in ${skillsList}, I've built practical systems—including ${
+            selectedList[0]?.title || 'campus engineering projects'
+          } (${selectedList[0]?.impactMetric || 'measurable campus impact'}).\n\nI would love to bring this builder mindset to ${
+            opportunity?.org || 'your team'
+          } this upcoming term.\n\nBest regards,\nAlex Student`;
+        }, [opportunity, selectedList]);
+
+        const handleCopy = () => {
+          const fullText = `TAILORED RESUME BULLETS FOR ${opportunity?.org?.toUpperCase()}\n\n${selectedList
+            .map((e) => `• ${e.bullet}`)
+            .join('\n')}\n\nCOVER NOTE:\n${generatedPitch}`;
+          navigator.clipboard.writeText(fullText);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        };
+
+        if (!opportunity) return null;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 backdrop-blur-[1px]">
+            <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-[#e3e2de] bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-[#ecebe7] bg-[#fbfbfa] px-5 py-3.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-base">
+                    ✨
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#37352f]">
+                      AI Tailored Application — {opportunity.org}
+                    </h3>
+                    <p className="text-xs text-[#787774]">{opportunity.title}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="rounded-md px-2.5 py-1 text-sm font-medium text-[#787774] hover:bg-[#efefed]"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="grid flex-1 grid-cols-1 overflow-y-auto md:grid-cols-2">
+                <div className="border-b border-[#ecebe7] p-5 md:border-b-0 md:border-r">
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-[#787774]">
+                      1. Paste Role / Club Description
+                    </label>
+                    <span className="rounded bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                      Live Scanner
+                    </span>
+                  </div>
+                  <textarea
+                    value={jobDesc}
+                    onChange={(e) => setJobDesc(e.target.value)}
+                    rows={7}
+                    className="w-full rounded-lg border border-[#e3e2de] bg-[#fbfbfa] p-3 text-sm leading-relaxed focus:border-purple-400 focus:bg-white focus:outline-none"
+                  />
+                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900">
+                    <strong>Tip:</strong> Edit the text above (e.g., type <code>PyTorch</code> or{' '}
+                    <code>Leadership</code>) to watch matching bullets update live on the right.
+                  </div>
+                </div>
+
+                <div className="bg-[#fcfcfb] p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-purple-700">
+                      2. Matched Resume Bullets
+                    </span>
+                    <button
+                      onClick={handleCopy}
+                      className="rounded-md bg-[#37352f] px-3 py-1.5 text-xs font-medium text-white hover:bg-black"
+                    >
+                      {copied ? '✓ Copied!' : 'Copy Packet'}
+                    </button>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {selectedList.map((exp) => (
+                      <div key={exp.id} className="rounded-lg border border-[#e3e2de] bg-white p-3">
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold">{exp.title}</span>
+                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                            {exp.impactMetric}
+                          </span>
+                        </div>
+                        <p className="text-xs leading-relaxed text-[#55534e]">• {exp.bullet}</p>
+                        {exp.matchedSkills.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {exp.matchedSkills.map((s) => (
+                              <span
+                                key={s}
+                                className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700"
+                              >
+                                Matched: {s}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="mb-1.5 text-xs font-semibold">Auto-Drafted Outreach Note</div>
+                    <pre className="whitespace-pre-wrap rounded-lg border border-[#e3e2de] bg-white p-3 font-sans text-xs leading-relaxed">
+                      {generatedPitch}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        const [activeTab, setActiveTab] = useState('command');
+        const [opportunities, setOpportunities] = useState(() =>
+          loadState('launchpad_opps_v1', initialOpportunities)
+        );
+        const [experiences, setExperiences] = useState(() =>
+          loadState('launchpad_exps_v1', initialExperiences)
+        );
+        const [contacts, setContacts] = useState(() =>
+          loadState('launchpad_contacts_v1', initialContacts)
+        );
+        const [tasks, setTasks] = useState(() => loadState('launchpad_tasks_v1', initialTasks));
+
+        const [selectedOppForAI, setSelectedOppForAI] = useState(null);
+        const [newTaskTitle, setNewTaskTitle] = useState('');
+        const [newTaskEnergy, setNewTaskEnergy] = useState('High');
+        const [newOppTitle, setNewOppTitle] = useState('');
+        const [newOppOrg, setNewOppOrg] = useState('');
+        const [newOppType, setNewOppType] = useState('Internship');
+        const [newExpTitle, setNewExpTitle] = useState('');
+        const [newExpMetric, setNewExpMetric] = useState('');
+        const [newExpSkills, setNewExpSkills] = useState('');
+        const [newExpBullet, setNewExpBullet] = useState('');
+
+        useEffect(() => localStorage.setItem('launchpad_opps_v1', JSON.stringify(opportunities)), [opportunities]);
+        useEffect(() => localStorage.setItem('launchpad_exps_v1', JSON.stringify(experiences)), [experiences]);
+        useEffect(() => localStorage.setItem('launchpad_contacts_v1', JSON.stringify(contacts)), [contacts]);
+        useEffect(() => localStorage.setItem('launchpad_tasks_v1', JSON.stringify(tasks)), [tasks]);
+
+        const resetDemoData = () => {
+          setOpportunities(initialOpportunities);
+          setExperiences(initialExperiences);
+          setContacts(initialContacts);
+          setTasks(initialTasks);
+        };
+
+        const cycleOppStatus = (id) => {
+          setOpportunities((prev) =>
+            prev.map((opp) => {
+              if (opp.id !== id) return opp;
+              const nextIdx = (STAGES.indexOf(opp.status) + 1) % STAGES.length;
+              return { ...opp, status: STAGES[nextIdx] };
+            })
+          );
+        };
+
+        const addOpportunity = (e) => {
+          e.preventDefault();
+          if (!newOppTitle.trim() || !newOppOrg.trim()) return;
+          setOpportunities([
+            {
+              id: 'opp-' + Date.now(),
+              title: newOppTitle.trim(),
+              org: newOppOrg.trim(),
+              type: newOppType,
+              status: 'Wishlist',
+              deadline: '2026-12-20',
+              skills: ['Python', 'React', 'Leadership'],
+              description: `Seeking motivated student candidates for ${newOppTitle.trim()} at ${newOppOrg.trim()}.`,
+            },
+            ...opportunities,
+          ]);
+          setNewOppTitle('');
+          setNewOppOrg('');
+        };
+
+        const pingContact = (id) => {
+          setContacts((prev) =>
+            prev.map((c) => (c.id === id ? { ...c, lastContactedDaysAgo: 0 } : c))
+          );
+        };
+
+        const toggleTask = (id) => {
+          setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+        };
+
+        const addTask = (e) => {
+          e.preventDefault();
+          if (!newTaskTitle.trim()) return;
+          setTasks([
+            {
+              id: 'task-' + Date.now(),
+              title: newTaskTitle.trim(),
+              courseOrTag: newTaskEnergy === 'High' ? 'Deep Focus' : 'Quick Admin • 10m',
+              dueDate: 'This Week',
+              energy: newTaskEnergy,
+              done: false,
+            },
+            ...tasks,
+          ]);
+          setNewTaskTitle('');
+        };
+
+        const addExperience = (e) => {
+          e.preventDefault();
+          if (!newExpTitle.trim() || !newExpBullet.trim()) return;
+          setExperiences([
+            {
+              id: 'exp-' + Date.now(),
+              title: newExpTitle.trim(),
+              impactMetric: newExpMetric.trim() || 'Campus Impact',
+              skills: newExpSkills.split(',').map((s) => s.trim()).filter(Boolean),
+              bullet: newExpBullet.trim(),
+            },
+            ...experiences,
+          ]);
+          setNewExpTitle('');
+          setNewExpMetric('');
+          setNewExpSkills('');
+          setNewExpBullet('');
+        };
+
+        const coldContacts = contacts.filter((c) => c.lastContactedDaysAgo > 14);
+        const highEnergyTasks = tasks.filter((t) => t.energy === 'High');
+        const lowEnergyTasks = tasks.filter((t) => t.energy === 'Low');
+        const activeOppsCount = opportunities.filter((o) => o.status !== 'Wishlist').length;
+        const offersCount = opportunities.filter((o) => o.status === 'Offer').length;
+
+        return (
+          <div className="min-h-screen bg-[#fbfbfa] text-[#37352f]">
+            <div className="h-24 w-full bg-gradient-to-r from-[#1e293b] via-[#334155] to-[#0f172a]" />
+
+            <div className="mx-auto max-w-6xl px-4 pb-20 sm:px-8">
+              <div className="-mt-9 mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div>
+                  <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e3e2de] bg-white text-2xl shadow-sm">
+                    🚀
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Launchpad OS</h1>
+                    <span className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs font-medium text-purple-700">
+                      Smarter Student OS • 2026
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-[#787774]">
+                    All-in-one campus command center for internships, club roles, alumni CRM, and energy-based sprints.
+                  </p>
+                </div>
+
+                <button
+                  onClick={resetDemoData}
+                  className="self-start rounded-lg border border-[#e3e2de] bg-white px-3 py-1.5 text-xs font-medium text-[#787774] hover:bg-[#f4f4f2] hover:text-[#37352f] sm:self-auto"
+                >
+                  ↺ Reset Demo Data
+                </button>
+              </div>
+
+              <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-xl border border-[#e3e2de] bg-white p-3.5">
+                  <div className="text-xs font-medium text-[#787774]">Active Applications</div>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <span className="text-2xl font-bold">{activeOppsCount}</span>
+                    <span className="text-xs text-blue-600">{opportunities.length} tracked</span>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[#e3e2de] bg-white p-3.5">
+                  <div className="text-xs font-medium text-[#787774]">Offers / Leadership</div>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <span className="text-2xl font-bold text-emerald-700">{offersCount}</span>
+                    <span className="text-xs text-emerald-600">Accepted</span>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[#e3e2de] bg-white p-3.5">
+                  <div className="text-xs font-medium text-[#787774]">Ghost-Buster Alerts</div>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <span className="text-2xl font-bold text-amber-600">{coldContacts.length}</span>
+                    <span className="text-xs text-amber-700">&gt;14d overdue</span>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[#e3e2de] bg-white p-3.5">
+                  <div className="text-xs font-medium text-[#787774]">Sprint Completion</div>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <span className="text-2xl font-bold">
+                      {tasks.filter((t) => t.done).length}/{tasks.length}
+                    </span>
+                    <span className="text-xs text-[#787774]">done</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6 flex gap-1 overflow-x-auto border-b border-[#e3e2de]">
+                {[
+                  { id: 'command', label: '🚀 Command Center' },
+                  { id: 'pipeline', label: '💼 Opportunities Kanban' },
+                  { id: 'network', label: '🤝 Campus Network CRM' },
+                  { id: 'experience', label: '🏆 Experience Bank' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+                      activeTab === tab.id
+                        ? 'border-[#37352f] text-[#37352f]'
+                        : 'border-transparent text-[#787774] hover:text-[#37352f]'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {activeTab === 'command' && (
+                <div className="space-y-6">
+                  {coldContacts.length > 0 && (
+                    <div className="flex flex-col justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 sm:flex-row sm:items-center">
+                      <div>
+                        <div className="text-sm font-semibold text-amber-950">
+                          ⚠️ Ghost-Buster Alert: {coldContacts.length} Warm Contacts Going Cold (&gt;14 Days)
+                        </div>
+                        <p className="mt-0.5 text-xs text-amber-800">
+                          {coldContacts.map((c) => `${c.name} (${c.org} • ${c.lastContactedDaysAgo}d ago)`).join('  •  ')}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('network')}
+                        className="shrink-0 rounded-lg bg-amber-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-950"
+                      >
+                        Open CRM →
+                      </button>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="mb-3 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                      <h2 className="text-base font-semibold">✅ Energy-Based Weekly Sprint</h2>
+                      <form onSubmit={addTask} className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="text"
+                          value={newTaskTitle}
+                          onChange={(e) => setNewTaskTitle(e.target.value)}
+                          placeholder="+ Add assignment or task..."
+                          className="rounded-lg border border-[#e3e2de] bg-white px-3 py-1.5 text-xs focus:outline-none sm:w-60"
+                        />
+                        <select
+                          value={newTaskEnergy}
+                          onChange={(e) => setNewTaskEnergy(e.target.value)}
+                          className="rounded-lg border border-[#e3e2de] bg-white px-2.5 py-1.5 text-xs"
+                        >
+                          <option value="High">🧠 High Energy</option>
+                          <option value="Low">⚡ Quick Win</option>
+                        </select>
+                        <button
+                          type="submit"
+                          className="rounded-lg bg-[#37352f] px-3 py-1.5 text-xs font-medium text-white hover:bg-black"
+                        >
+                          + Add
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="rounded-xl border border-[#e3e2de] bg-white p-4">
+                        <div className="mb-3 flex items-center justify-between border-b border-[#f1f0ed] pb-2.5">
+                          <span className="text-sm font-semibold text-indigo-950">
+                            🧠 Deep Work (High Energy)
+                          </span>
+                          <span className="rounded bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
+                            {highEnergyTasks.filter((t) => !t.done).length} left
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {highEnergyTasks.map((task) => (
+                            <label
+                              key={task.id}
+                              className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 hover:bg-[#fbfbfa]"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={task.done}
+                                onChange={() => toggleTask(task.id)}
+                                className="mt-0.5 h-4 w-4 rounded"
+                              />
+                              <div className="flex-1">
+                                <div className={`text-sm ${task.done ? 'text-[#9b9a97] line-through' : 'font-medium'}`}>
+                                  {task.title}
+                                </div>
+                                <div className="mt-0.5 text-[11px] text-[#787774]">
+                                  {task.courseOrTag} • Due {task.dueDate}
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-[#e3e2de] bg-white p-4">
+                        <div className="mb-3 flex items-center justify-between border-b border-[#f1f0ed] pb-2.5">
+                          <span className="text-sm font-semibold text-emerald-950">
+                            ⚡ Quick Wins (Low Energy / &lt;15m)
+                          </span>
+                          <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                            {lowEnergyTasks.filter((t) => !t.done).length} left
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {lowEnergyTasks.map((task) => (
+                            <label
+                              key={task.id}
+                              className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 hover:bg-[#fbfbfa]"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={task.done}
+                                onChange={() => toggleTask(task.id)}
+                                className="mt-0.5 h-4 w-4 rounded"
+                              />
+                              <div className="flex-1">
+                                <div className={`text-sm ${task.done ? 'text-[#9b9a97] line-through' : 'font-medium'}`}>
+                                  {task.title}
+                                </div>
+                                <div className="mt-0.5 text-[11px] text-[#787774]">
+                                  {task.courseOrTag} • Due {task.dueDate}
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="text-base font-semibold">💼 Active Opportunities & AI Resume Tailor</h2>
+                      <button
+                        onClick={() => setActiveTab('pipeline')}
+                        className="text-xs font-medium text-[#787774] hover:text-[#37352f]"
+                      >
+                        Full Kanban →
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {opportunities.map((opp) => (
+                        <div
+                          key={opp.id}
+                          className="flex flex-col justify-between rounded-xl border border-[#e3e2de] bg-white p-4"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-semibold uppercase text-[#787774]">
+                                {opp.org} • {opp.type}
+                              </span>
+                              <button
+                                onClick={() => cycleOppStatus(opp.id)}
+                                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${STAGE_BADGE[opp.status]}`}
+                              >
+                                {opp.status}
+                              </button>
+                            </div>
+                            <h3 className="mt-1 text-sm font-semibold">{opp.title}</h3>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {opp.skills.map((s) => (
+                                <span key={s} className="rounded bg-[#f4f4f2] px-2 py-0.5 text-[11px] text-[#55534e]">
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex items-center justify-between border-t border-[#f1f0ed] pt-3">
+                            <span className="text-[11px] text-[#787774]">Deadline: {opp.deadline}</span>
+                            <button
+                              onClick={() => setSelectedOppForAI(opp)}
+                              className="rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100"
+                            >
+                              ✨ Tailor Resume
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'pipeline' && (
+                <div className="space-y-5">
+                  <form
+                    onSubmit={addOpportunity}
+                    className="flex flex-wrap items-center gap-2 rounded-xl border border-[#e3e2de] bg-white p-3.5"
+                  >
+                    <input
+                      type="text"
+                      value={newOppOrg}
+                      onChange={(e) => setNewOppOrg(e.target.value)}
+                      placeholder="Company or Club (e.g. Microsoft)"
+                      className="rounded-lg border border-[#e3e2de] bg-[#fbfbfa] px-3 py-1.5 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={newOppTitle}
+                      onChange={(e) => setNewOppTitle(e.target.value)}
+                      placeholder="Role
