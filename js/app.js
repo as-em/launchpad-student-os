@@ -12,6 +12,42 @@ window.toggleLang = () => {
   save();
 };
 
+window.exportBackup = () => {
+  const { taskError, copiedBulletId, ...persistentState } = state;
+  const blob = new Blob([JSON.stringify(persistentState, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `launchpad-cse-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+window.importBackup = file => {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!Array.isArray(data.tasks)) {
+        alert('Invalid backup file.');
+        return;
+      }
+      state = {
+        ...structuredClone(defaults),
+        ...data,
+        taskError: '',
+        copiedBulletId: null
+      };
+      save();
+      alert('Backup restored successfully!');
+    } catch {
+      alert('Could not read JSON backup file.');
+    }
+  };
+  reader.readAsText(file);
+};
+
 window.setTab = t => {
   state.tab = t;
   state.copiedBulletId = null;
@@ -348,7 +384,12 @@ function render() {
           <h1 class="text-2xl font-bold">${esc(t.title)}</h1>
           <p class="text-xs text-[#787774]">${esc(t.subtitle)}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="exportBackup()" class="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">⬇ Backup JSON</button>
+          <label class="cursor-pointer rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">
+            ⬆ Restore JSON
+            <input type="file" accept="application/json" class="hidden" onchange="importBackup(this.files[0]); this.value='';" />
+          </label>
           <button type="button" onclick="toggleLang()" class="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">
             ${state.lang === 'en' ? 'বাংলা' : 'English'}
           </button>
@@ -426,7 +467,7 @@ function render() {
             <button type="button" onclick="setTaskFilter('done')" class="rounded-md border px-2 py-1 ${state.taskFilter === 'done' ? 'bg-stone-800 text-white border-stone-800' : 'bg-white'}">Done</button>
             ${doneCount > 0 ? `<button type="button" onclick="clearCompletedTasks()" class="rounded-md border bg-white px-2 py-1 text-red-700 hover:bg-red-50">Clear Done (${doneCount})</button>` : ''}
           </div>
-          <span>Planned: <strong>${formatMins(totalMins)}</strong> • Remaining: <strong>${formatMins(remainingMins)}</strong></span>
+          <span>Saved in browser • Planned: <strong>${formatMins(totalMins)}</strong> • Remaining: <strong>${formatMins(remainingMins)}</strong></span>
         </div>
 
         ${state.taskError ? `<p class="mb-4 text-xs font-medium text-red-600">${esc(state.taskError)}</p>` : ''}
