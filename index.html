@@ -93,10 +93,12 @@
         ],
         modalOppId: null,
         customDesc: '',
-        copiedBulletId: null
+        copiedBulletId: null,
+        taskError: ''
       };
 
       let state = JSON.parse(localStorage.getItem('launchpad_bd_cse_v1') || 'null') || structuredClone(defaults);
+      state.taskError = state.taskError || '';
 
       function save() {
         localStorage.setItem('launchpad_bd_cse_v1', JSON.stringify(state));
@@ -116,6 +118,7 @@
       window.setTab = t => {
         state.tab = t;
         state.copiedBulletId = null;
+        state.taskError = '';
         save();
       };
 
@@ -176,11 +179,22 @@
 
       window.addTask = e => {
         e.preventDefault();
-        const title = document.getElementById('taskTitle').value.trim();
-        const energy = document.getElementById('taskEnergy').value;
-        const tag = document.getElementById('taskTag').value.trim() || (energy === 'High' ? 'Study/CP' : 'Quick');
-        if (!title) return;
+        const titleInput = document.getElementById('taskTitle');
+        const tagInput = document.getElementById('taskTag');
+        const energySelect = document.getElementById('taskEnergy');
 
+        const title = titleInput ? titleInput.value.trim() : '';
+        const energy = energySelect ? energySelect.value : 'High';
+        const tag = (tagInput && tagInput.value.trim()) || (energy === 'High' ? 'Study/CP' : 'Quick');
+
+        if (!title) {
+          state.taskError = 'Please type a task before clicking + Add Task.';
+          render();
+          document.getElementById('taskTitle')?.focus();
+          return;
+        }
+
+        state.taskError = '';
         state.tasks.unshift({
           id: Date.now(),
           title,
@@ -189,6 +203,7 @@
           done: false
         });
         save();
+        document.getElementById('taskTitle')?.focus();
       };
 
       window.pingContact = id => {
@@ -360,15 +375,16 @@
                   <strong>⏰ Follow-Up Reminder:</strong> It has been over 2 weeks since you checked in with ${cold.map(c => `<strong>${esc(c.name)}</strong> (${c.days}d)`).join(', ')}.
                 </div>
               ` : ''}
-              <form onsubmit="addTask(event)" class="mb-4 flex flex-wrap gap-2">
-                <input id="taskTitle" placeholder="e.g., Practice 2 graph problems or finish CSE lab..." class="min-w-[200px] flex-1 rounded-lg border bg-white px-3 py-2 text-xs" />
-                <input id="taskTag" placeholder="Course / Tag (e.g. CSE-311)" class="w-32 rounded-lg border bg-white px-3 py-2 text-xs" />
-                <select id="taskEnergy" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
+              <form onsubmit="addTask(event)" class="mb-2 flex flex-wrap gap-2">
+                <input id="taskTitle" placeholder="e.g., Practice 2 graph problems or finish CSE lab..." class="min-w-[200px] flex-1 rounded-lg border bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-stone-300" />
+                <input id="taskTag" placeholder="Course / Tag (e.g. CSE-311)" class="w-32 rounded-lg border bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-stone-300" />
+                <select id="taskEnergy" class="rounded-lg border bg-white px-2.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-stone-300">
                   <option value="High">🧠 Deep Focus (Lab / CP / Thesis)</option>
                   <option value="Low">⚡ Quick Task (5–15m)</option>
                 </select>
-                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white hover:opacity-95">+ Add Task</button>
+                <button type="submit" class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white hover:bg-stone-800 active:scale-[0.99]">+ Add Task</button>
               </form>
+              ${state.taskError ? `<p class="mb-4 text-xs font-medium text-red-600">${esc(state.taskError)}</p>` : '<div class="mb-2"></div>'}
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="rounded-xl border bg-white p-4">
                   <div class="mb-2 text-xs font-bold text-indigo-900">🧠 Deep Focus (Labs, CP, Thesis & Prep)</div>
@@ -410,7 +426,7 @@
                 <select id="oppType" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
                   <option>Internship</option><option>Club Role</option><option>Research</option>
                 </select>
-                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add</button>
+                <button type="submit" class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add</button>
               </form>
               <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
                 ${STAGES.map(st => `
@@ -448,7 +464,7 @@
                 <input id="contactRole" placeholder="Role (e.g. SWE, Lecturer)" class="rounded-lg border bg-white px-3 py-2 text-xs" />
                 <input id="contactOrg" placeholder="Org / Dept" class="rounded-lg border bg-white px-3 py-2 text-xs" />
                 <input id="contactNote" placeholder="Short note" class="min-w-[160px] flex-1 rounded-lg border bg-white px-3 py-2 text-xs" />
-                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add Contact</button>
+                <button type="submit" class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add Contact</button>
               </form>
               <div class="overflow-x-auto rounded-xl border bg-white">
                 <table class="w-full text-left text-xs">
@@ -480,7 +496,7 @@
                 <select id="expSkill" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
                   ${SKILL_OPTIONS.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
                 </select>
-                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add Project Bullet</button>
+                <button type="submit" class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add Project Bullet</button>
                 <input id="expBullet" placeholder="Write 1 strong CV bullet point (what you built, tech stack, and result)..." class="rounded-lg border bg-white px-3 py-2 text-xs sm:col-span-4" />
               </form>
               <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
