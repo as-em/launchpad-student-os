@@ -1,20 +1,39 @@
 const STORAGE_KEY = 'launchpad_bd_cse_v1';
 
-let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || structuredClone(defaults);
-state.lang = state.lang || 'en';
-state.tab = state.tab || 'command';
-state.taskFilter = state.taskFilter || 'all';
-state.taskQuery = state.taskQuery || '';
-state.activeTimerId = state.activeTimerId || null;
-state.elapsedSeconds = Number(state.elapsedSeconds) || 0;
-state.taskError = state.taskError || '';
-state.tasks = (state.tasks || []).map(t => ({
-  ...t,
-  minutes: Number(t.minutes) > 0 ? Number(t.minutes) : 30
-}));
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(defaults);
+    const parsed = JSON.parse(raw);
+    const merged = {
+      ...structuredClone(defaults),
+      ...parsed,
+      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : structuredClone(defaults.tasks),
+      opps: Array.isArray(parsed.opps) ? parsed.opps : structuredClone(defaults.opps),
+      contacts: Array.isArray(parsed.contacts) ? parsed.contacts : structuredClone(defaults.contacts),
+      exps: Array.isArray(parsed.exps) ? parsed.exps : structuredClone(defaults.exps)
+    };
+    merged.elapsedSeconds = Number(merged.elapsedSeconds) || 0;
+    merged.taskError = '';
+    merged.tasks = merged.tasks.map(t => ({
+      ...t,
+      minutes: Number(t.minutes) > 0 ? Number(t.minutes) : 30
+    }));
+    return merged;
+  } catch {
+    return structuredClone(defaults);
+  }
+}
+
+let state = loadState();
 
 function persistOnly() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    const { taskError, copiedBulletId, ...persistentState } = state;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistentState));
+  } catch (err) {
+    console.warn('Could not save to localStorage:', err);
+  }
 }
 
 function save() {
@@ -45,4 +64,4 @@ function formatClock(sec) {
   const mins = Math.floor(s / 60);
   const rem = s % 60;
   return `${String(mins).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
-                        }
+}
