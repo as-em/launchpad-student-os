@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Launchpad OS — Bangladeshi CSE Student OS</title>
+    <title>Launchpad OS — Bangladeshi CSE Student Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-[#fbfbfa] text-[#37352f] antialiased">
@@ -11,73 +11,502 @@
 
     <script>
       const STAGES = ['Wishlist', 'Applied', 'Interview', 'Offer'];
+      const SKILL_OPTIONS = ['C++', 'Python', 'DSA / CP', 'React', 'Node.js', 'SQL', 'Machine Learning', 'Leadership'];
 
       const defaults = {
         tab: 'command',
         opps: [
           {
             id: 1,
-            org: 'Pathao / Tech Team',
-            title: 'Software Engineering Intern (Backend / Full-Stack)',
+            org: 'Therap (BD) Ltd.',
+            title: 'Software Engineer Intern (Java / Web)',
             type: 'Internship',
             status: 'Interview',
             deadline: 'Dec 5',
-            skills: ['Python', 'SQL', 'APIs', 'Git'],
-            desc: 'Backend and API development internship using Python, SQL, REST APIs, and problem solving.'
+            skills: ['SQL', 'React', 'DSA / CP'],
+            desc: 'Backend and web engineering internship focusing on clean problem solving, SQL, and React.'
           },
           {
             id: 2,
-            org: 'University ACM / CP Wing',
-            title: 'Problem Setter & Junior Trainer',
+            org: 'CSE ACM / Programming Club',
+            title: 'Problem Setter & Contest Trainer',
             type: 'Club Role',
             status: 'Offer',
-            deadline: 'Nov 25',
-            skills: ['C++', 'Algorithms', 'Leadership'],
-            desc: 'Conduct weekly C++ DSA and competitive programming sessions for first- and second-year CSE students.'
+            deadline: 'Nov 28',
+            skills: ['C++', 'DSA / CP', 'Leadership'],
+            desc: 'Conduct weekly C++ and DSA practice sessions for juniors and help organize intra-university contests.'
           },
           {
             id: 3,
-            org: 'Brain Station 23 / Remote SWE',
+            org: 'Pathao / bKash Tech',
             title: 'Junior Software Engineer Intern',
             type: 'Internship',
             status: 'Applied',
-            deadline: 'Dec 12',
-            skills: ['JavaScript', 'React', 'SQL'],
-            desc: 'Build responsive web features with React and JavaScript alongside experienced engineers.'
+            deadline: 'Dec 14',
+            skills: ['Node.js', 'React', 'SQL'],
+            desc: 'Build scalable web/API services and collaborate with product and QA engineers.'
           },
           {
             id: 4,
-            org: 'CSE AI & NLP Study Group',
-            title: 'Undergraduate Research Contributor',
+            org: 'Dept. AI & NLP Research Group',
+            title: 'Undergraduate Thesis / Research Fellow',
             type: 'Research',
             status: 'Wishlist',
-            deadline: 'Dec 18',
-            skills: ['Python', 'Machine Learning', 'Data'],
-            desc: 'Work on Bangla text/NLP datasets and baseline ML experiments using Python.'
+            deadline: 'Dec 20',
+            skills: ['Python', 'Machine Learning'],
+            desc: 'Research on Bangla NLP and low-resource vision models using Python.'
           }
         ],
         exps: [
           {
             id: 1,
-            title: 'Campus Bus & Seat Tracker Web App',
-            metric: '900+ students',
-            skills: ['JavaScript', 'React', 'APIs'],
-            bullet: 'Built a mobile-friendly campus bus schedule and live status tool used by 900+ students during peak class hours.'
+            title: 'Dhaka Bus Route & Fare Finder',
+            metric: '2,200+ users',
+            skills: ['React', 'Node.js', 'SQL'],
+            bullet: 'Built a crowdsourced Dhaka bus route and fare web app using React, Node.js, and SQL, helping commuters plan trips faster.'
           },
           {
             id: 2,
-            title: 'ICPC / Codeforces Upsolve Streak',
-            metric: '350+ problems',
-            skills: ['C++', 'Algorithms', 'Leadership'],
-            bullet: 'Solved 350+ DSA and CP problems in C++ (graphs, DP, binary search) and hosted peer upsolving sessions.'
+            title: 'Intra-CSE Programming Contest & Bootcamp',
+            metric: '180+ participants',
+            skills: ['C++', 'DSA / CP', 'Leadership'],
+            bullet: 'Co-organized a 4-week C++ and DSA bootcamp and set 6 algorithmic problems for 180+ CSE students.'
           },
           {
             id: 3,
-            title: 'Bangla Student Notes & Past CT Archive',
-            metric: '1,200+ views',
-            skills: ['Python', 'SQL', 'Data'],
-            bullet: 'Indexed organized CSE lab manuals, CT notes, and past questions with fast search for semester exam prep.'
+            title: 'Bangla Social Media Sentiment Classifier',
+            metric: '88.4% F1-score',
+            skills: ['Python', 'Machine Learning'],
+            bullet: 'Trained and evaluated Python ML models on Bangla text datasets with preprocessing for mixed Romanized/Bangla comments.'
           }
         ],
         contacts: [
-          { id: 1, name: 'Tanvir Ahmed', role: 'Senior
+          { id: 1, name: 'Tanvir Ahmed', role: 'SWE @ Therap BD', org: 'Alumni Mentor', days: 18, note: 'Reviewed my resume; follow up after finishing SQL & OOP prep.' },
+          { id: 2, name: 'Nusrat Jahan', role: 'Senior SWE', org: 'Pathao', days: 5, note: 'Shared interview tips on system basics and debugging.' },
+          { id: 3, name: 'Dr. Mahmudul Hasan', role: 'Associate Professor, CSE', org: 'AI & NLP Lab', days: 22, note: 'Ask about available 4th-year thesis / research slots.' }
+        ],
+        tasks: [
+          { id: 1, title: 'Complete CSE-305 (OS / DBMS) lab report & code', tag: 'Lab', energy: 'High', done: false },
+          { id: 2, title: 'Solve 3 DP / Graph problems on Codeforces (C++)', tag: 'CP', energy: 'High', done: false },
+          { id: 3, title: 'Send polite follow-up message to alumni mentor', tag: '5m', energy: 'Low', done: false },
+          { id: 4, title: 'Update GitHub README & CV link', tag: '10m', energy: 'Low', done: true }
+        ],
+        modalOppId: null,
+        customDesc: '',
+        copiedBulletId: null
+      };
+
+      let state = JSON.parse(localStorage.getItem('launchpad_bd_cse_v1') || 'null') || structuredClone(defaults);
+
+      function save() {
+        localStorage.setItem('launchpad_bd_cse_v1', JSON.stringify(state));
+        render();
+      }
+
+      function esc(str) {
+        return String(str).replace(/[&<>"']/g, m => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[m]));
+      }
+
+      window.setTab = t => {
+        state.tab = t;
+        state.copiedBulletId = null;
+        save();
+      };
+
+      window.resetAll = () => {
+        if (confirm('Reset all tasks, applications, contacts, and projects back to sample CSE data?')) {
+          state = structuredClone(defaults);
+          save();
+        }
+      };
+
+      window.cycleStage = id => {
+        const o = state.opps.find(x => x.id === id);
+        if (o) {
+          o.status = STAGES[(STAGES.indexOf(o.status) + 1) % STAGES.length];
+          save();
+        }
+      };
+
+      window.deleteOpp = id => {
+        state.opps = state.opps.filter(x => x.id !== id);
+        save();
+      };
+
+      window.addOpp = e => {
+        e.preventDefault();
+        const org = document.getElementById('oppOrg').value.trim();
+        const title = document.getElementById('oppTitle').value.trim();
+        const type = document.getElementById('oppType').value;
+        const deadline = document.getElementById('oppDeadline').value.trim() || 'Dec 25';
+        const skill = document.getElementById('oppSkill').value;
+        if (!org || !title) return;
+
+        state.opps.unshift({
+          id: Date.now(),
+          org,
+          title,
+          type,
+          status: 'Wishlist',
+          deadline,
+          skills: [skill, 'DSA / CP'],
+          desc: `${title} at ${org}. Key skills: ${skill}, problem solving, teamwork.`
+        });
+        save();
+      };
+
+      window.toggleTask = id => {
+        const t = state.tasks.find(x => x.id === id);
+        if (t) {
+          t.done = !t.done;
+          save();
+        }
+      };
+
+      window.deleteTask = id => {
+        state.tasks = state.tasks.filter(x => x.id !== id);
+        save();
+      };
+
+      window.addTask = e => {
+        e.preventDefault();
+        const title = document.getElementById('taskTitle').value.trim();
+        const energy = document.getElementById('taskEnergy').value;
+        const tag = document.getElementById('taskTag').value.trim() || (energy === 'High' ? 'Study/CP' : 'Quick');
+        if (!title) return;
+
+        state.tasks.unshift({
+          id: Date.now(),
+          title,
+          tag,
+          energy,
+          done: false
+        });
+        save();
+      };
+
+      window.pingContact = id => {
+        const c = state.contacts.find(x => x.id === id);
+        if (c) {
+          c.days = 0;
+          save();
+        }
+      };
+
+      window.addContact = e => {
+        e.preventDefault();
+        const name = document.getElementById('contactName').value.trim();
+        const role = document.getElementById('contactRole').value.trim() || 'Senior / Alumni';
+        const org = document.getElementById('contactOrg').value.trim() || 'Tech / Campus';
+        const note = document.getElementById('contactNote').value.trim() || 'Connected for internship / thesis guidance.';
+        if (!name) return;
+
+        state.contacts.unshift({
+          id: Date.now(),
+          name,
+          role,
+          org,
+          days: 0,
+          note
+        });
+        save();
+      };
+
+      window.addExp = e => {
+        e.preventDefault();
+        const title = document.getElementById('expTitle').value.trim();
+        const metric = document.getElementById('expMetric').value.trim() || 'Course / Side Project';
+        const skill = document.getElementById('expSkill').value;
+        const bullet = document.getElementById('expBullet').value.trim();
+        if (!title || !bullet) return;
+
+        state.exps.unshift({
+          id: Date.now(),
+          title,
+          metric,
+          skills: [skill],
+          bullet
+        });
+        save();
+      };
+
+      window.copyBullet = (id, text) => {
+        navigator.clipboard?.writeText(text).catch(() => {});
+        state.copiedBulletId = id;
+        save();
+      };
+
+      window.openTailor = id => {
+        const o = state.opps.find(x => x.id === id);
+        state.modalOppId = id;
+        state.customDesc = o ? o.desc : '';
+        state.copiedBulletId = null;
+        save();
+      };
+
+      window.closeTailor = () => {
+        state.modalOppId = null;
+        state.copiedBulletId = null;
+        save();
+      };
+
+      window.updateDesc = val => {
+        state.customDesc = val;
+        render();
+      };
+
+      function render() {
+        const cold = state.contacts.filter(c => c.days > 14);
+        const activeCount = state.opps.filter(o => o.status !== 'Wishlist').length;
+        const offersCount = state.opps.filter(o => o.status === 'Offer').length;
+        const doneCount = state.tasks.filter(t => t.done).length;
+
+        let modalHtml = '';
+        if (state.modalOppId) {
+          const opp = state.opps.find(x => x.id === state.modalOppId);
+          const text = (state.customDesc || '').toLowerCase();
+          const matched = state.exps
+            .map(exp => ({
+              ...exp,
+              hits: exp.skills.filter(s => text.includes(s.toLowerCase()))
+            }))
+            .sort((a, b) => b.hits.length - a.hits.length);
+          const chosen = matched.some(m => m.hits.length > 0)
+            ? matched.filter(m => m.hits.length > 0)
+            : matched.slice(0, 2);
+
+          modalHtml = `
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+              <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-[#e3e2de] bg-white p-5 shadow-xl">
+                <div class="flex items-center justify-between border-b pb-3">
+                  <div>
+                    <div class="text-sm font-bold">CV & Interview Bullet Matcher — ${esc(opp?.org || '')}</div>
+                    <div class="text-xs text-[#787774]">${esc(opp?.title || '')}</div>
+                  </div>
+                  <button onclick="closeTailor()" class="rounded border px-2.5 py-1 text-xs hover:bg-stone-50">Close</button>
+                </div>
+                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label class="text-xs font-semibold text-[#787774]">Job / Lab / Club Requirements (try C++, Python, React, SQL, ML)</label>
+                    <textarea oninput="updateDesc(this.value)" rows="6" class="mt-1.5 w-full rounded-lg border p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-stone-300">${esc(state.customDesc)}</textarea>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="text-xs font-semibold text-purple-700">Best Matching Projects & Activities</div>
+                    ${chosen.map(m => `
+                      <div class="rounded-lg border p-2.5 text-xs">
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="font-semibold">${esc(m.title)} <span class="text-emerald-700">(${esc(m.metric)})</span></span>
+                          <button onclick="copyBullet(${m.id}, '${esc(m.bullet)}')" class="rounded border px-2 py-0.5 text-[11px] hover:bg-stone-50">
+                            ${state.copiedBulletId === m.id ? 'Copied!' : 'Copy'}
+                          </button>
+                        </div>
+                        <p class="mt-1 text-[#55534e]">• ${esc(m.bullet)}</p>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        document.getElementById('app').innerHTML = `
+          <div class="h-24 w-full bg-gradient-to-r from-[#064e3b] via-[#0f172a] to-[#1e293b]"></div>
+          <div class="mx-auto max-w-5xl px-4 pb-16">
+            <div class="-mt-8 mb-6 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <div class="mb-2 inline-flex h-14 w-14 items-center justify-center rounded-2xl border bg-white text-2xl shadow-sm">💻</div>
+                <h1 class="text-2xl font-bold">Launchpad OS — CSE Edition</h1>
+                <p class="text-xs text-[#787774]">Labs, CP & Thesis Tasks • Internships & Clubs • Alumni/Faculty Network • Project Bullets</p>
+              </div>
+              <button onclick="resetAll()" class="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">↺ Reset Sample Data</button>
+            </div>
+
+            <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div class="rounded-xl border bg-white p-3">
+                <div class="text-xs text-[#787774]">Active Applications</div>
+                <div class="mt-1 text-xl font-bold">${activeCount} / ${state.opps.length}</div>
+              </div>
+              <div class="rounded-xl border bg-white p-3">
+                <div class="text-xs text-[#787774]">Offers / Selections</div>
+                <div class="mt-1 text-xl font-bold text-emerald-700">${offersCount}</div>
+              </div>
+              <div class="rounded-xl border bg-white p-3">
+                <div class="text-xs text-[#787774]">Follow-Up Due (&gt;14d)</div>
+                <div class="mt-1 text-xl font-bold text-amber-600">${cold.length}</div>
+              </div>
+              <div class="rounded-xl border bg-white p-3">
+                <div class="text-xs text-[#787774]">Tasks Completed</div>
+                <div class="mt-1 text-xl font-bold">${doneCount} / ${state.tasks.length}</div>
+              </div>
+            </div>
+
+            <div class="mb-6 flex gap-2 overflow-x-auto border-b pb-2">
+              <button onclick="setTab('command')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'command' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">📌 Daily & Lab Sprint</button>
+              <button onclick="setTab('pipeline')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'pipeline' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">💼 Internships & Clubs</button>
+              <button onclick="setTab('network')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'network' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">🤝 Alumni & Faculty</button>
+              <button onclick="setTab('experience')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'experience' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">🏆 Projects & CV Bank</button>
+            </div>
+
+            ${state.tab === 'command' ? `
+              ${cold.length ? `
+                <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-950">
+                  <strong>⏰ Follow-Up Reminder:</strong> It has been over 2 weeks since you checked in with ${cold.map(c => `<strong>${esc(c.name)}</strong> (${c.days}d)`).join(', ')}.
+                </div>
+              ` : ''}
+              <form onsubmit="addTask(event)" class="mb-4 flex flex-wrap gap-2">
+                <input id="taskTitle" placeholder="e.g., Practice 2 graph problems or finish CSE lab..." class="min-w-[200px] flex-1 rounded-lg border bg-white px-3 py-2 text-xs" />
+                <input id="taskTag" placeholder="Course / Tag (e.g. CSE-311)" class="w-32 rounded-lg border bg-white px-3 py-2 text-xs" />
+                <select id="taskEnergy" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
+                  <option value="High">🧠 Deep Focus (Lab / CP / Thesis)</option>
+                  <option value="Low">⚡ Quick Task (5–15m)</option>
+                </select>
+                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white hover:opacity-95">+ Add Task</button>
+              </form>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="rounded-xl border bg-white p-4">
+                  <div class="mb-2 text-xs font-bold text-indigo-900">🧠 Deep Focus (Labs, CP, Thesis & Prep)</div>
+                  ${state.tasks.filter(t => t.energy === 'High').map(t => `
+                    <div class="flex items-center justify-between gap-2 rounded p-1.5 text-xs hover:bg-stone-50">
+                      <label class="flex flex-1 cursor-pointer items-center gap-2">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})" />
+                        <span class="${t.done ? 'line-through text-stone-400' : ''}">${esc(t.title)}</span>
+                        <span class="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-600">${esc(t.tag)}</span>
+                      </label>
+                      <button onclick="deleteTask(${t.id})" title="Delete" class="text-stone-400 hover:text-red-600">✕</button>
+                    </div>
+                  `).join('') || '<p class="text-xs text-stone-400">No deep focus tasks yet.</p>'}
+                </div>
+                <div class="rounded-xl border bg-white p-4">
+                  <div class="mb-2 text-xs font-bold text-emerald-900">⚡ Quick Wins (Messages, Forms, Small Fixes)</div>
+                  ${state.tasks.filter(t => t.energy === 'Low').map(t => `
+                    <div class="flex items-center justify-between gap-2 rounded p-1.5 text-xs hover:bg-stone-50">
+                      <label class="flex flex-1 cursor-pointer items-center gap-2">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})" />
+                        <span class="${t.done ? 'line-through text-stone-400' : ''}">${esc(t.title)}</span>
+                        <span class="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-600">${esc(t.tag)}</span>
+                      </label>
+                      <button onclick="deleteTask(${t.id})" title="Delete" class="text-stone-400 hover:text-red-600">✕</button>
+                    </div>
+                  `).join('') || '<p class="text-xs text-stone-400">No quick tasks yet.</p>'}
+                </div>
+              </div>
+            ` : ''}
+
+            ${state.tab === 'pipeline' ? `
+              <form onsubmit="addOpp(event)" class="mb-4 flex flex-wrap gap-2">
+                <input id="oppOrg" placeholder="Company / Club / Lab (e.g. BJIT, ACM)" class="rounded-lg border bg-white px-3 py-2 text-xs" />
+                <input id="oppTitle" placeholder="Role / Opportunity" class="min-w-[180px] flex-1 rounded-lg border bg-white px-3 py-2 text-xs" />
+                <input id="oppDeadline" placeholder="Deadline (e.g. Dec 25)" class="w-28 rounded-lg border bg-white px-3 py-2 text-xs" />
+                <select id="oppSkill" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
+                  ${SKILL_OPTIONS.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
+                </select>
+                <select id="oppType" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
+                  <option>Internship</option><option>Club Role</option><option>Research</option>
+                </select>
+                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add</button>
+              </form>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+                ${STAGES.map(st => `
+                  <div class="rounded-xl border bg-stone-100/70 p-3">
+                    <div class="mb-2 flex items-center justify-between text-xs font-bold">
+                      <span>${st}</span>
+                      <span class="text-stone-500">${state.opps.filter(o => o.status === st).length}</span>
+                    </div>
+                    <div class="space-y-2">
+                      ${state.opps.filter(o => o.status === st).map(o => `
+                        <div class="rounded-lg border bg-white p-3 text-xs">
+                          <div class="flex items-center justify-between text-[10px] font-semibold text-[#787774]">
+                            <span>${esc(o.org)}</span>
+                            <span>Due: ${esc(o.deadline)}</span>
+                          </div>
+                          <div class="mt-0.5 font-semibold">${esc(o.title)}</div>
+                          <div class="mt-2 flex items-center justify-between gap-1">
+                            <div class="flex gap-1">
+                              <button onclick="openTailor(${o.id})" class="rounded bg-purple-50 px-2 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-100">Match CV</button>
+                              <button onclick="cycleStage(${o.id})" class="rounded border px-2 py-1 text-[11px] hover:bg-stone-50">Next →</button>
+                            </div>
+                            <button onclick="deleteOpp(${o.id})" title="Remove" class="px-1 text-stone-400 hover:text-red-600">✕</button>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${state.tab === 'network' ? `
+              <form onsubmit="addContact(event)" class="mb-4 flex flex-wrap gap-2">
+                <input id="contactName" placeholder="Name (Senior / Alumni / Teacher)" class="rounded-lg border bg-white px-3 py-2 text-xs" />
+                <input id="contactRole" placeholder="Role (e.g. SWE, Lecturer)" class="rounded-lg border bg-white px-3 py-2 text-xs" />
+                <input id="contactOrg" placeholder="Org / Dept" class="rounded-lg border bg-white px-3 py-2 text-xs" />
+                <input id="contactNote" placeholder="Short note" class="min-w-[160px] flex-1 rounded-lg border bg-white px-3 py-2 text-xs" />
+                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add Contact</button>
+              </form>
+              <div class="overflow-x-auto rounded-xl border bg-white">
+                <table class="w-full text-left text-xs">
+                  <thead class="border-b bg-stone-50 text-[#787774]">
+                    <tr><th class="p-3">Name</th><th class="p-3">Org / Dept</th><th class="p-3">Last Ping</th><th class="p-3">Status</th><th class="p-3">Action</th></tr>
+                  </thead>
+                  <tbody class="divide-y">
+                    ${state.contacts.map(c => `
+                      <tr>
+                        <td class="p-3">
+                          <div class="font-medium">${esc(c.name)} <span class="text-[#787774]">(${esc(c.role)})</span></div>
+                          <div class="text-[11px] text-[#787774]">${esc(c.note)}</div>
+                        </td>
+                        <td class="p-3">${esc(c.org)}</td>
+                        <td class="p-3">${c.days === 0 ? 'Today' : c.days + 'd ago'}</td>
+                        <td class="p-3">${c.days > 14 ? '<span class="rounded bg-amber-100 px-2 py-0.5 text-amber-900">⏰ Follow Up</span>' : '<span class="rounded bg-emerald-100 px-2 py-0.5 text-emerald-900">✅ Active</span>'}</td>
+                        <td class="p-3"><button onclick="pingContact(${c.id})" class="rounded border px-2 py-1 hover:bg-stone-50">Mark Pinged</button></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : ''}
+
+            ${state.tab === 'experience' ? `
+              <form onsubmit="addExp(event)" class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-4">
+                <input id="expTitle" placeholder="Project / Contest / Club Title" class="rounded-lg border bg-white px-3 py-2 text-xs" />
+                <input id="expMetric" placeholder="Impact / Metric (e.g. 90% acc, 2nd place)" class="rounded-lg border bg-white px-3 py-2 text-xs" />
+                <select id="expSkill" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
+                  ${SKILL_OPTIONS.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
+                </select>
+                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add Project Bullet</button>
+                <input id="expBullet" placeholder="Write 1 strong CV bullet point (what you built, tech stack, and result)..." class="rounded-lg border bg-white px-3 py-2 text-xs sm:col-span-4" />
+              </form>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                ${state.exps.map(e => `
+                  <div class="rounded-xl border bg-white p-4 text-xs">
+                    <div class="flex items-start justify-between gap-2 font-bold">
+                      <span>${esc(e.title)}</span>
+                      <span class="shrink-0 text-emerald-700">${esc(e.metric)}</span>
+                    </div>
+                    <p class="mt-1.5 text-[#55534e]">• ${esc(e.bullet)}</p>
+                    <div class="mt-2 flex items-center justify-between">
+                      <span class="text-[11px] text-[#787774]">Tags: ${esc(e.skills.join(', '))}</span>
+                      <button onclick="copyBullet(${e.id}, '${esc(e.bullet)}')" class="rounded border px-2 py-0.5 text-[11px] hover:bg-stone-50">
+                        ${state.copiedBulletId === e.id ? 'Copied!' : 'Copy Bullet'}
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+          ${modalHtml}
+        `;
+      }
+
+      render();
+    </script>
+  </body>
+</html>
