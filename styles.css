@@ -1,10 +1,14 @@
-/* Clean subtle scrollbars */
+/* Custom styles & smooth scrollbar polish */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #d6d3d1;
   border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
 }
