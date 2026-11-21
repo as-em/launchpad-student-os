@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Launchpad OS — Smarter Student OS</title>
+    <title>Launchpad OS — Bangladeshi CSE Student OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-[#fbfbfa] text-[#37352f] antialiased">
@@ -11,272 +11,73 @@
 
     <script>
       const STAGES = ['Wishlist', 'Applied', 'Interview', 'Offer'];
-      const BADGE = {
-        Wishlist: 'bg-stone-100 text-stone-700 border-stone-200',
-        Applied: 'bg-blue-50 text-blue-700 border-blue-200',
-        Interview: 'bg-amber-50 text-amber-700 border-amber-200',
-        Offer: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      };
 
       const defaults = {
         tab: 'command',
         opps: [
-          { id: 1, org: 'Google', title: 'Software Engineering Intern (STEP)', type: 'Internship', status: 'Interview', deadline: 'Dec 5', skills: ['Python', 'React', 'Algorithms'], desc: 'CS student role focusing on Python, React, and problem solving.' },
-          { id: 2, org: 'Campus Robotics Society', title: 'Technical Lead', type: 'Club Role', status: 'Offer', deadline: 'Nov 25', skills: ['Python', 'Leadership', 'C++'], desc: 'Lead a student sub-team building robotics and vision systems.' },
-          { id: 3, org: 'Stripe', title: 'Product Management Intern', type: 'Internship', status: 'Applied', deadline: 'Dec 12', skills: ['Product', 'Analytics', 'React'], desc: 'Work with product and engineering teams using analytics and clear communication.' },
-          { id: 4, org: 'University Vision Lab', title: 'AI Research Fellow', type: 'Research', status: 'Wishlist', deadline: 'Dec 18', skills: ['Python', 'PyTorch', 'Machine Learning'], desc: 'Research assistant role using Python and PyTorch.' }
+          {
+            id: 1,
+            org: 'Pathao / Tech Team',
+            title: 'Software Engineering Intern (Backend / Full-Stack)',
+            type: 'Internship',
+            status: 'Interview',
+            deadline: 'Dec 5',
+            skills: ['Python', 'SQL', 'APIs', 'Git'],
+            desc: 'Backend and API development internship using Python, SQL, REST APIs, and problem solving.'
+          },
+          {
+            id: 2,
+            org: 'University ACM / CP Wing',
+            title: 'Problem Setter & Junior Trainer',
+            type: 'Club Role',
+            status: 'Offer',
+            deadline: 'Nov 25',
+            skills: ['C++', 'Algorithms', 'Leadership'],
+            desc: 'Conduct weekly C++ DSA and competitive programming sessions for first- and second-year CSE students.'
+          },
+          {
+            id: 3,
+            org: 'Brain Station 23 / Remote SWE',
+            title: 'Junior Software Engineer Intern',
+            type: 'Internship',
+            status: 'Applied',
+            deadline: 'Dec 12',
+            skills: ['JavaScript', 'React', 'SQL'],
+            desc: 'Build responsive web features with React and JavaScript alongside experienced engineers.'
+          },
+          {
+            id: 4,
+            org: 'CSE AI & NLP Study Group',
+            title: 'Undergraduate Research Contributor',
+            type: 'Research',
+            status: 'Wishlist',
+            deadline: 'Dec 18',
+            skills: ['Python', 'Machine Learning', 'Data'],
+            desc: 'Work on Bangla text/NLP datasets and baseline ML experiments using Python.'
+          }
         ],
         exps: [
-          { id: 1, title: 'Campus Shuttle Tracker', metric: '1,400+ users', skills: ['React', 'Python'], bullet: 'Built a campus bus tracker using React and Python, cutting wait times by 40%.' },
-          { id: 2, title: 'Hackathon Organizing Team', metric: '$18k raised', skills: ['Leadership', 'Product'], bullet: 'Secured $18,000 in sponsorships and ran logistics for a 350-student hackathon.' },
-          { id: 3, title: 'Vision Lane Detector', metric: '32 FPS', skills: ['Python', 'PyTorch', 'C++'], bullet: 'Trained a PyTorch lane detector running at 32 FPS on edge hardware.' }
+          {
+            id: 1,
+            title: 'Campus Bus & Seat Tracker Web App',
+            metric: '900+ students',
+            skills: ['JavaScript', 'React', 'APIs'],
+            bullet: 'Built a mobile-friendly campus bus schedule and live status tool used by 900+ students during peak class hours.'
+          },
+          {
+            id: 2,
+            title: 'ICPC / Codeforces Upsolve Streak',
+            metric: '350+ problems',
+            skills: ['C++', 'Algorithms', 'Leadership'],
+            bullet: 'Solved 350+ DSA and CP problems in C++ (graphs, DP, binary search) and hosted peer upsolving sessions.'
+          },
+          {
+            id: 3,
+            title: 'Bangla Student Notes & Past CT Archive',
+            metric: '1,200+ views',
+            skills: ['Python', 'SQL', 'Data'],
+            bullet: 'Indexed organized CSE lab manuals, CT notes, and past questions with fast search for semester exam prep.'
+          }
         ],
         contacts: [
-          { id: 1, name: 'Sarah Jenkins', role: 'Recruiter', org: 'Google', days: 18, note: 'Met at career fair; send updated resume.' },
-          { id: 2, name: 'Arjun Patel', role: 'Alumni SWE', org: 'Stripe', days: 4, note: 'Coffee chat done; shared referral tips.' },
-          { id: 3, name: 'Dr. Elena Rostova', role: 'CS Professor', org: 'Vision Lab', days: 21, note: 'Follow up about Spring research slot.' }
-        ],
-        tasks: [
-          { id: 1, title: 'Finish CS301 problem set', tag: 'CS301', energy: 'High', done: false },
-          { id: 2, title: 'Prep Google STEP interview notes', tag: 'Career', energy: 'High', done: false },
-          { id: 3, title: 'Email Sarah Jenkins follow-up', tag: '5m', energy: 'Low', done: false },
-          { id: 4, title: 'Submit club officer form', tag: '10m', energy: 'Low', done: true }
-        ],
-        modalOppId: null,
-        customDesc: ''
-      };
-
-      let state = JSON.parse(localStorage.getItem('launchpad_simple_v1') || 'null') || structuredClone(defaults);
-      function save() {
-        localStorage.setItem('launchpad_simple_v1', JSON.stringify(state));
-        render();
-      }
-      function esc(str) {
-        return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-      }
-
-      window.setTab = t => { state.tab = t; save(); };
-      window.resetAll = () => { state = structuredClone(defaults); save(); };
-      window.cycleStage = id => {
-        const o = state.opps.find(x => x.id === id);
-        if (o) { o.status = STAGES[(STAGES.indexOf(o.status) + 1) % STAGES.length]; save(); }
-      };
-      window.addOpp = e => {
-        e.preventDefault();
-        const org = document.getElementById('oppOrg').value.trim();
-        const title = document.getElementById('oppTitle').value.trim();
-        const type = document.getElementById('oppType').value;
-        if (!org || !title) return;
-        state.opps.unshift({ id: Date.now(), org, title, type, status: 'Wishlist', deadline: 'Dec 20', skills: ['Python', 'React', 'Leadership'], desc: title + ' at ' + org });
-        save();
-      };
-      window.toggleTask = id => {
-        const t = state.tasks.find(x => x.id === id);
-        if (t) { t.done = !t.done; save(); }
-      };
-      window.addTask = e => {
-        e.preventDefault();
-        const title = document.getElementById('taskTitle').value.trim();
-        const energy = document.getElementById('taskEnergy').value;
-        if (!title) return;
-        state.tasks.unshift({ id: Date.now(), title, tag: energy === 'High' ? 'Deep' : '10m', energy, done: false });
-        save();
-      };
-      window.pingContact = id => {
-        const c = state.contacts.find(x => x.id === id);
-        if (c) { c.days = 0; save(); }
-      };
-      window.openTailor = id => {
-        const o = state.opps.find(x => x.id === id);
-        state.modalOppId = id;
-        state.customDesc = o ? o.desc : '';
-        save();
-      };
-      window.closeTailor = () => { state.modalOppId = null; save(); };
-      window.updateDesc = val => { state.customDesc = val; save(); };
-
-      function render() {
-        const cold = state.contacts.filter(c => c.days > 14);
-        const activeCount = state.opps.filter(o => o.status !== 'Wishlist').length;
-        const offersCount = state.opps.filter(o => o.status === 'Offer').length;
-        const doneCount = state.tasks.filter(t => t.done).length;
-
-        let modalHtml = '';
-        if (state.modalOppId) {
-          const opp = state.opps.find(x => x.id === state.modalOppId);
-          const text = (state.customDesc || '').toLowerCase();
-          const matched = state.exps
-            .map(exp => ({ ...exp, hits: exp.skills.filter(s => text.includes(s.toLowerCase())) }))
-            .sort((a, b) => b.hits.length - a.hits.length);
-          const chosen = matched.some(m => m.hits.length > 0) ? matched.filter(m => m.hits.length > 0) : matched.slice(0, 2);
-
-          modalHtml = `
-            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-              <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-[#e3e2de] bg-white p-5 shadow-xl">
-                <div class="flex items-center justify-between border-b pb-3">
-                  <div>
-                    <div class="text-sm font-bold">✨ Resume & Note Tailor — ${esc(opp?.org || '')}</div>
-                    <div class="text-xs text-[#787774]">${esc(opp?.title || '')}</div>
-                  </div>
-                  <button onclick="closeTailor()" class="rounded border px-2.5 py-1 text-xs">Close</button>
-                </div>
-                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label class="text-xs font-semibold text-[#787774]">Paste Description (try typing Python, React, or Leadership)</label>
-                    <textarea oninput="updateDesc(this.value)" rows="6" class="mt-1.5 w-full rounded-lg border p-2.5 text-xs">${esc(state.customDesc)}</textarea>
-                  </div>
-                  <div class="space-y-2">
-                    <div class="text-xs font-semibold text-purple-700">Matched Experience Bullets</div>
-                    ${chosen.map(m => `
-                      <div class="rounded-lg border p-2.5 text-xs">
-                        <div class="font-semibold">${esc(m.title)} <span class="text-emerald-700">(${esc(m.metric)})</span></div>
-                        <p class="mt-1 text-[#55534e]">• ${esc(m.bullet)}</p>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
-        document.getElementById('app').innerHTML = `
-          <div class="h-24 w-full bg-gradient-to-r from-[#1e293b] to-[#0f172a]"></div>
-          <div class="mx-auto max-w-5xl px-4 pb-16">
-            <div class="-mt-8 mb-6 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <div class="mb-2 inline-flex h-14 w-14 items-center justify-center rounded-2xl border bg-white text-2xl shadow-sm">🚀</div>
-                <h1 class="text-2xl font-bold">Launchpad OS</h1>
-                <p class="text-xs text-[#787774]">Smarter Student OS • Internships, Clubs, CRM & Sprints</p>
-              </div>
-              <button onclick="resetAll()" class="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">↺ Reset Demo Data</button>
-            </div>
-
-            <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div class="rounded-xl border bg-white p-3">
-                <div class="text-xs text-[#787774]">Active Apps</div>
-                <div class="mt-1 text-xl font-bold">${activeCount} / ${state.opps.length}</div>
-              </div>
-              <div class="rounded-xl border bg-white p-3">
-                <div class="text-xs text-[#787774]">Offers</div>
-                <div class="mt-1 text-xl font-bold text-emerald-700">${offersCount}</div>
-              </div>
-              <div class="rounded-xl border bg-white p-3">
-                <div class="text-xs text-[#787774]">Follow-Up Alerts (&gt;14d)</div>
-                <div class="mt-1 text-xl font-bold text-amber-600">${cold.length}</div>
-              </div>
-              <div class="rounded-xl border bg-white p-3">
-                <div class="text-xs text-[#787774]">Tasks Done</div>
-                <div class="mt-1 text-xl font-bold">${doneCount} / ${state.tasks.length}</div>
-              </div>
-            </div>
-
-            <div class="mb-6 flex gap-2 overflow-x-auto border-b pb-2">
-              <button onclick="setTab('command')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab==='command'?'bg-[#37352f] text-white':'bg-white border'}">🚀 Command Center</button>
-              <button onclick="setTab('pipeline')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab==='pipeline'?'bg-[#37352f] text-white':'bg-white border'}">💼 Kanban</button>
-              <button onclick="setTab('network')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab==='network'?'bg-[#37352f] text-white':'bg-white border'}">🤝 Network CRM</button>
-              <button onclick="setTab('experience')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab==='experience'?'bg-[#37352f] text-white':'bg-white border'}">🏆 Experience</button>
-            </div>
-
-            ${state.tab === 'command' ? `
-              ${cold.length ? `<div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-950"><strong>⚠️ Ghost-Buster Alert:</strong> ${cold.map(c => `${esc(c.name)} (${c.days}d ago)`).join(', ')}</div>` : ''}
-              <form onsubmit="addTask(event)" class="mb-4 flex flex-wrap gap-2">
-                <input id="taskTitle" placeholder="+ New task..." class="flex-1 rounded-lg border bg-white px-3 py-2 text-xs" />
-                <select id="taskEnergy" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
-                  <option value="High">🧠 High Energy</option>
-                  <option value="Low">⚡ Quick Win</option>
-                </select>
-                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">Add</button>
-              </form>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div class="rounded-xl border bg-white p-4">
-                  <div class="mb-2 text-xs font-bold text-indigo-900">🧠 Deep Work (High Energy)</div>
-                  ${state.tasks.filter(t => t.energy==='High').map(t => `
-                    <label class="flex cursor-pointer items-center gap-2 rounded p-1.5 text-xs hover:bg-stone-50">
-                      <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id})" />
-                      <span class="${t.done?'line-through text-stone-400':''}">${esc(t.title)}</span>
-                    </label>
-                  `).join('')}
-                </div>
-                <div class="rounded-xl border bg-white p-4">
-                  <div class="mb-2 text-xs font-bold text-emerald-900">⚡ Quick Wins (Low Energy)</div>
-                  ${state.tasks.filter(t => t.energy==='Low').map(t => `
-                    <label class="flex cursor-pointer items-center gap-2 rounded p-1.5 text-xs hover:bg-stone-50">
-                      <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id})" />
-                      <span class="${t.done?'line-through text-stone-400':''}">${esc(t.title)}</span>
-                    </label>
-                  `).join('')}
-                </div>
-              </div>
-            ` : ''}
-
-            ${state.tab === 'pipeline' ? `
-              <form onsubmit="addOpp(event)" class="mb-4 flex flex-wrap gap-2">
-                <input id="oppOrg" placeholder="Org / Club" class="rounded-lg border bg-white px-3 py-2 text-xs" />
-                <input id="oppTitle" placeholder="Role / Opportunity" class="flex-1 rounded-lg border bg-white px-3 py-2 text-xs" />
-                <select id="oppType" class="rounded-lg border bg-white px-2.5 py-2 text-xs">
-                  <option>Internship</option><option>Club Role</option><option>Research</option>
-                </select>
-                <button class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white">+ Add</button>
-              </form>
-              <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
-                ${STAGES.map(st => `
-                  <div class="rounded-xl border bg-stone-100/70 p-3">
-                    <div class="mb-2 text-xs font-bold">${st}</div>
-                    <div class="space-y-2">
-                      ${state.opps.filter(o => o.status===st).map(o => `
-                        <div class="rounded-lg border bg-white p-3 text-xs">
-                          <div class="text-[10px] font-semibold text-[#787774]">${esc(o.org)}</div>
-                          <div class="font-semibold">${esc(o.title)}</div>
-                          <div class="mt-2 flex gap-1.5">
-                            <button onclick="openTailor(${o.id})" class="rounded bg-purple-50 px-2 py-1 text-[11px] font-medium text-purple-700">✨ Tailor</button>
-                            <button onclick="cycleStage(${o.id})" class="rounded border px-2 py-1 text-[11px]">Next →</button>
-                          </div>
-                        </div>
-                      `).join('')}
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-
-            ${state.tab === 'network' ? `
-              <div class="overflow-x-auto rounded-xl border bg-white">
-                <table class="w-full text-left text-xs">
-                  <thead class="border-b bg-stone-50 text-[#787774]">
-                    <tr><th class="p-3">Name</th><th class="p-3">Org</th><th class="p-3">Last Ping</th><th class="p-3">Status</th><th class="p-3">Action</th></tr>
-                  </thead>
-                  <tbody class="divide-y">
-                    ${state.contacts.map(c => `
-                      <tr>
-                        <td class="p-3 font-medium">${esc(c.name)} <span class="text-[#787774]">(${esc(c.role)})</span></td>
-                        <td class="p-3">${esc(c.org)}</td>
-                        <td class="p-3">${c.days === 0 ? 'Today' : c.days + 'd ago'}</td>
-                        <td class="p-3">${c.days > 14 ? '<span class="rounded bg-amber-100 px-2 py-0.5 text-amber-900">⚠️ Follow Up</span>' : '<span class="rounded bg-emerald-100 px-2 py-0.5 text-emerald-900">✅ Warm</span>'}</td>
-                        <td class="p-3"><button onclick="pingContact(${c.id})" class="rounded border px-2 py-1">Check In</button></td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-              </div>
-            ` : ''}
-
-            ${state.tab === 'experience' ? `
-              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                ${state.exps.map(e => `
-                  <div class="rounded-xl border bg-white p-4 text-xs">
-                    <div class="flex justify-between font-bold"><span>${esc(e.title)}</span><span class="text-emerald-700">${esc(e.metric)}</span></div>
-                    <p class="mt-1.5 text-[#55534e]">• ${esc(e.bullet)}</p>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-          </div>
-          ${modalHtml}
-        `;
-      }
-
-      render();
-    </script>
-  </body>
-</html>
+          { id: 1, name: 'Tanvir Ahmed', role: 'Senior
