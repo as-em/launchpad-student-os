@@ -13,8 +13,36 @@
       const STAGES = ['Wishlist', 'Applied', 'Interview', 'Offer'];
       const SKILL_OPTIONS = ['C++', 'Python', 'DSA / CP', 'React', 'Node.js', 'SQL', 'Machine Learning', 'Leadership'];
 
+      const I18N = {
+        en: {
+          title: 'Launchpad OS — CSE Edition',
+          subtitle: 'Labs, CP & Thesis Tasks • Internships & Clubs • Alumni/Faculty Network • Project Bullets',
+          reset: '↺ Reset Sample Data',
+          tabCommand: '📌 Daily & Lab Sprint',
+          tabPipeline: '💼 Internships & Clubs',
+          tabNetwork: '🤝 Alumni & Faculty',
+          tabExp: '🏆 Projects & CV Bank',
+          addTask: '+ Add Task'
+        },
+        bn: {
+          title: 'লঞ্চপ্যাড ওএস — সিএসই এডিশন',
+          subtitle: 'ল্যাব, সিপি ও থিসিস টাস্ক • ইন্টার্নশিপ ও ক্লাব • অ্যালামনাই ও শিক্ষক • প্রজেক্ট সিভি ব্যাংক',
+          reset: '↺ রিসেট ডেটা',
+          tabCommand: '📌 ডেইলি ও ল্যাব স্প্রিন্ট',
+          tabPipeline: '💼 ইন্টার্নশিপ ও ক্লাব',
+          tabNetwork: '🤝 অ্যালামনাই ও শিক্ষক',
+          tabExp: '🏆 প্রজেক্ট ও সিভি ব্যাংক',
+          addTask: '+ টাস্ক যোগ করুন'
+        }
+      };
+
       const defaults = {
+        lang: 'en',
         tab: 'command',
+        taskFilter: 'all',
+        taskQuery: '',
+        activeTimerId: null,
+        elapsedSeconds: 0,
         opps: [
           {
             id: 1,
@@ -98,6 +126,11 @@
       };
 
       let state = JSON.parse(localStorage.getItem('launchpad_bd_cse_v1') || 'null') || structuredClone(defaults);
+      state.lang = state.lang || 'en';
+      state.taskFilter = state.taskFilter || 'all';
+      state.taskQuery = state.taskQuery || '';
+      state.activeTimerId = state.activeTimerId || null;
+      state.elapsedSeconds = Number(state.elapsedSeconds) || 0;
       state.taskError = state.taskError || '';
       state.tasks = (state.tasks || []).map(t => ({ ...t, minutes: Number(t.minutes) > 0 ? Number(t.minutes) : 30 }));
 
@@ -124,10 +157,67 @@
         return rem ? `${h}h ${rem}m` : `${h}h`;
       }
 
+      function formatClock(sec) {
+        const s = Math.max(0, Number(sec) || 0);
+        const mins = Math.floor(s / 60);
+        const rem = s % 60;
+        return `${String(mins).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+      }
+
+      setInterval(() => {
+        if (state.activeTimerId) {
+          state.elapsedSeconds += 1;
+          localStorage.setItem('launchpad_bd_cse_v1', JSON.stringify(state));
+          const el = document.getElementById('live-timer-clock');
+          if (el) el.textContent = formatClock(state.elapsedSeconds);
+        }
+      }, 1000);
+
+      window.toggleLang = () => {
+        state.lang = state.lang === 'en' ? 'bn' : 'en';
+        save();
+      };
+
       window.setTab = t => {
         state.tab = t;
         state.copiedBulletId = null;
         state.taskError = '';
+        save();
+      };
+
+      window.setTaskFilter = f => {
+        state.taskFilter = f;
+        save();
+      };
+
+      window.setTaskQuery = q => {
+        state.taskQuery = q;
+        render();
+      };
+
+      window.clearCompletedTasks = () => {
+        state.tasks = state.tasks.filter(t => !t.done);
+        save();
+      };
+
+      window.startTimer = id => {
+        if (state.activeTimerId && state.activeTimerId !== id) {
+          window.stopTimer();
+        }
+        state.activeTimerId = id;
+        state.elapsedSeconds = 0;
+        save();
+      };
+
+      window.stopTimer = () => {
+        if (!state.activeTimerId) return;
+        const t = state.tasks.find(x => x.id === state.activeTimerId);
+        const loggedMins = Math.max(1, Math.round(state.elapsedSeconds / 60));
+        if (t && state.elapsedSeconds >= 10) {
+          t.minutes = (Number(t.minutes) || 0) + loggedMins;
+        }
+        state.activeTimerId = null;
+        state.elapsedSeconds = 0;
         save();
       };
 
@@ -177,6 +267,10 @@
         const t = state.tasks.find(x => x.id === id);
         if (t) {
           t.done = !t.done;
+          if (t.done && state.activeTimerId === id) {
+            state.activeTimerId = null;
+            state.elapsedSeconds = 0;
+          }
           save();
         }
       };
@@ -196,6 +290,10 @@
       };
 
       window.deleteTask = id => {
+        if (state.activeTimerId === id) {
+          state.activeTimerId = null;
+          state.elapsedSeconds = 0;
+        }
         state.tasks = state.tasks.filter(x => x.id !== id);
         save();
       };
@@ -214,7 +312,7 @@
         const minutes = !Number.isNaN(rawMins) && rawMins > 0 && rawMins <= 1440 ? rawMins : (energy === 'High' ? 60 : 15);
 
         if (!title) {
-          state.taskError = 'Please type a task before clicking + Add Task.';
+          state.taskError = 'Please type a task before clicking Add Task.';
           render();
           document.getElementById('taskTitle')?.focus();
           return;
@@ -241,6 +339,11 @@
         }
       };
 
+      window.deleteContact = id => {
+        state.contacts = state.contacts.filter(x => x.id !== id);
+        save();
+      };
+
       window.addContact = e => {
         e.preventDefault();
         const name = document.getElementById('contactName').value.trim();
@@ -257,6 +360,11 @@
           days: 0,
           note
         });
+        save();
+      };
+
+      window.deleteExp = id => {
+        state.exps = state.exps.filter(x => x.id !== id);
         save();
       };
 
@@ -303,7 +411,19 @@
         render();
       };
 
+      function getFilteredTasks(energy) {
+        const q = (state.taskQuery || '').trim().toLowerCase();
+        return state.tasks.filter(t => {
+          if (t.energy !== energy) return false;
+          if (state.taskFilter === 'pending' && t.done) return false;
+          if (state.taskFilter === 'done' && !t.done) return false;
+          if (q && !t.title.toLowerCase().includes(q) && !String(t.tag).toLowerCase().includes(q)) return false;
+          return true;
+        });
+      }
+
       function renderTaskRow(t) {
+        const isTiming = state.activeTimerId === t.id;
         return `
           <div class="flex items-center justify-between gap-2 rounded p-1.5 text-xs hover:bg-stone-50">
             <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
@@ -311,23 +431,30 @@
               <span class="truncate ${t.done ? 'line-through text-stone-400' : ''}">${esc(t.title)}</span>
               <span class="shrink-0 rounded bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-600">${esc(t.tag)}</span>
             </label>
-            <div class="flex shrink-0 items-center gap-1.5">
+            <div class="flex shrink-0 items-center gap-1">
               <button type="button" onclick="editTaskTime(${t.id})" title="Click to edit time in minutes" class="rounded border border-stone-200 bg-stone-50 px-1.5 py-0.5 text-[10px] font-medium text-stone-700 hover:bg-stone-100">
                 ⏱️ ${formatMins(t.minutes)}
               </button>
-              <button type="button" onclick="deleteTask(${t.id})" title="Delete" class="text-stone-400 hover:text-red-600">✕</button>
+              ${!t.done ? `
+                <button type="button" onclick="${isTiming ? 'stopTimer()' : `startTimer(${t.id})`}" title="${isTiming ? 'Stop & add time' : 'Start focus timer'}" class="rounded border px-1.5 py-0.5 text-[10px] font-medium ${isTiming ? 'border-amber-300 bg-amber-100 text-amber-900' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'}">
+                  ${isTiming ? '⏹ Stop' : '▶'}
+                </button>
+              ` : ''}
+              <button type="button" onclick="deleteTask(${t.id})" title="Delete" class="px-1 text-stone-400 hover:text-red-600">✕</button>
             </div>
           </div>
         `;
       }
 
       function render() {
+        const t = I18N[state.lang] || I18N.en;
         const cold = state.contacts.filter(c => c.days > 14);
         const activeCount = state.opps.filter(o => o.status !== 'Wishlist').length;
         const offersCount = state.opps.filter(o => o.status === 'Offer').length;
-        const doneCount = state.tasks.filter(t => t.done).length;
-        const totalMins = state.tasks.reduce((sum, t) => sum + (Number(t.minutes) || 0), 0);
-        const remainingMins = state.tasks.filter(t => !t.done).reduce((sum, t) => sum + (Number(t.minutes) || 0), 0);
+        const doneCount = state.tasks.filter(x => x.done).length;
+        const totalMins = state.tasks.reduce((sum, x) => sum + (Number(x.minutes) || 0), 0);
+        const remainingMins = state.tasks.filter(x => !x.done).reduce((sum, x) => sum + (Number(x.minutes) || 0), 0);
+        const activeTimerTask = state.tasks.find(x => x.id === state.activeTimerId);
 
         let modalHtml = '';
         if (state.modalOppId) {
@@ -384,10 +511,15 @@
             <div class="-mt-8 mb-6 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <div class="mb-2 inline-flex h-14 w-14 items-center justify-center rounded-2xl border bg-white text-2xl shadow-sm">💻</div>
-                <h1 class="text-2xl font-bold">Launchpad OS — CSE Edition</h1>
-                <p class="text-xs text-[#787774]">Labs, CP & Thesis Tasks • Internships & Clubs • Alumni/Faculty Network • Project Bullets</p>
+                <h1 class="text-2xl font-bold">${esc(t.title)}</h1>
+                <p class="text-xs text-[#787774]">${esc(t.subtitle)}</p>
               </div>
-              <button onclick="resetAll()" class="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">↺ Reset Sample Data</button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleLang()" class="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">
+                  ${state.lang === 'en' ? 'বাংলা' : 'English'}
+                </button>
+                <button type="button" onclick="resetAll()" class="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-stone-50">${esc(t.reset)}</button>
+              </div>
             </div>
 
             <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -410,18 +542,29 @@
             </div>
 
             <div class="mb-6 flex gap-2 overflow-x-auto border-b pb-2">
-              <button onclick="setTab('command')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'command' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">📌 Daily & Lab Sprint</button>
-              <button onclick="setTab('pipeline')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'pipeline' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">💼 Internships & Clubs</button>
-              <button onclick="setTab('network')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'network' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">🤝 Alumni & Faculty</button>
-              <button onclick="setTab('experience')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'experience' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">🏆 Projects & CV Bank</button>
+              <button type="button" onclick="setTab('command')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'command' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">${esc(t.tabCommand)}</button>
+              <button type="button" onclick="setTab('pipeline')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'pipeline' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">${esc(t.tabPipeline)}</button>
+              <button type="button" onclick="setTab('network')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'network' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">${esc(t.tabNetwork)}</button>
+              <button type="button" onclick="setTab('experience')" class="rounded-lg px-3 py-1.5 text-xs font-semibold ${state.tab === 'experience' ? 'bg-[#37352f] text-white' : 'bg-white border hover:bg-stone-50'}">${esc(t.tabExp)}</button>
             </div>
 
             ${state.tab === 'command' ? `
+              ${activeTimerTask ? `
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-xs text-indigo-950">
+                  <div>
+                    <strong>⏱️ Focusing on:</strong> ${esc(activeTimerTask.title)}
+                    <span id="live-timer-clock" class="ml-2 rounded bg-white px-2 py-0.5 font-mono font-bold text-indigo-700">${formatClock(state.elapsedSeconds)}</span>
+                  </div>
+                  <button type="button" onclick="stopTimer()" class="rounded bg-indigo-700 px-3 py-1 text-xs font-medium text-white hover:bg-indigo-800">Finish & Log Time</button>
+                </div>
+              ` : ''}
+
               ${cold.length ? `
                 <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-950">
                   <strong>⏰ Follow-Up Reminder:</strong> It has been over 2 weeks since you checked in with ${cold.map(c => `<strong>${esc(c.name)}</strong> (${c.days}d)`).join(', ')}.
                 </div>
               ` : ''}
+
               <form onsubmit="addTask(event)" class="mb-2 flex flex-wrap gap-2">
                 <input id="taskTitle" placeholder="e.g., Practice 2 graph problems or finish CSE lab..." class="min-w-[200px] flex-1 rounded-lg border bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-stone-300" />
                 <input id="taskTag" placeholder="Course / Tag (e.g. CSE-311)" class="w-32 rounded-lg border bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-stone-300" />
@@ -438,27 +581,36 @@
                   <option value="High">🧠 Deep Focus (Lab / CP / Thesis)</option>
                   <option value="Low">⚡ Quick Task (5–15m)</option>
                 </select>
-                <button type="submit" class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white hover:bg-stone-800 active:scale-[0.99]">+ Add Task</button>
+                <button type="submit" class="rounded-lg bg-[#37352f] px-4 py-2 text-xs font-medium text-white hover:bg-stone-800 active:scale-[0.99]">${esc(t.addTask)}</button>
               </form>
+
               <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#787774]">
-                <span>Tip: Enter minutes (e.g., 45) on add, or click any task's ⏱️ badge to change its time.</span>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <input value="${esc(state.taskQuery)}" oninput="setTaskQuery(this.value)" placeholder="Search task or tag..." class="rounded-md border bg-white px-2.5 py-1 text-xs text-[#37352f]" />
+                  <button type="button" onclick="setTaskFilter('all')" class="rounded-md border px-2 py-1 ${state.taskFilter === 'all' ? 'bg-stone-800 text-white border-stone-800' : 'bg-white'}">All</button>
+                  <button type="button" onclick="setTaskFilter('pending')" class="rounded-md border px-2 py-1 ${state.taskFilter === 'pending' ? 'bg-stone-800 text-white border-stone-800' : 'bg-white'}">Pending</button>
+                  <button type="button" onclick="setTaskFilter('done')" class="rounded-md border px-2 py-1 ${state.taskFilter === 'done' ? 'bg-stone-800 text-white border-stone-800' : 'bg-white'}">Done</button>
+                  ${doneCount > 0 ? `<button type="button" onclick="clearCompletedTasks()" class="rounded-md border bg-white px-2 py-1 text-red-700 hover:bg-red-50">Clear Done (${doneCount})</button>` : ''}
+                </div>
                 <span>Planned: <strong>${formatMins(totalMins)}</strong> • Remaining: <strong>${formatMins(remainingMins)}</strong></span>
               </div>
+
               ${state.taskError ? `<p class="mb-4 text-xs font-medium text-red-600">${esc(state.taskError)}</p>` : ''}
+
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="rounded-xl border bg-white p-4">
                   <div class="mb-2 flex items-center justify-between text-xs font-bold text-indigo-900">
                     <span>🧠 Deep Focus (Labs, CP, Thesis & Prep)</span>
-                    <span class="text-[11px] font-semibold text-indigo-700">${formatMins(state.tasks.filter(t => t.energy === 'High' && !t.done).reduce((s, t) => s + t.minutes, 0))} left</span>
+                    <span class="text-[11px] font-semibold text-indigo-700">${formatMins(state.tasks.filter(x => x.energy === 'High' && !x.done).reduce((s, x) => s + x.minutes, 0))} left</span>
                   </div>
-                  ${state.tasks.filter(t => t.energy === 'High').map(renderTaskRow).join('') || '<p class="text-xs text-stone-400">No deep focus tasks yet.</p>'}
+                  ${getFilteredTasks('High').map(renderTaskRow).join('') || '<p class="text-xs text-stone-400">No matching deep focus tasks.</p>'}
                 </div>
                 <div class="rounded-xl border bg-white p-4">
                   <div class="mb-2 flex items-center justify-between text-xs font-bold text-emerald-900">
                     <span>⚡ Quick Wins (Messages, Forms, Small Fixes)</span>
-                    <span class="text-[11px] font-semibold text-emerald-700">${formatMins(state.tasks.filter(t => t.energy === 'Low' && !t.done).reduce((s, t) => s + t.minutes, 0))} left</span>
+                    <span class="text-[11px] font-semibold text-emerald-700">${formatMins(state.tasks.filter(x => x.energy === 'Low' && !x.done).reduce((s, x) => s + x.minutes, 0))} left</span>
                   </div>
-                  ${state.tasks.filter(t => t.energy === 'Low').map(renderTaskRow).join('') || '<p class="text-xs text-stone-400">No quick tasks yet.</p>'}
+                  ${getFilteredTasks('Low').map(renderTaskRow).join('') || '<p class="text-xs text-stone-400">No matching quick tasks.</p>'}
                 </div>
               </div>
             ` : ''}
@@ -493,10 +645,10 @@
                           <div class="mt-0.5 font-semibold">${esc(o.title)}</div>
                           <div class="mt-2 flex items-center justify-between gap-1">
                             <div class="flex gap-1">
-                              <button onclick="openTailor(${o.id})" class="rounded bg-purple-50 px-2 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-100">Match CV</button>
-                              <button onclick="cycleStage(${o.id})" class="rounded border px-2 py-1 text-[11px] hover:bg-stone-50">Next →</button>
+                              <button type="button" onclick="openTailor(${o.id})" class="rounded bg-purple-50 px-2 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-100">Match CV</button>
+                              <button type="button" onclick="cycleStage(${o.id})" class="rounded border px-2 py-1 text-[11px] hover:bg-stone-50">Next →</button>
                             </div>
-                            <button onclick="deleteOpp(${o.id})" title="Remove" class="px-1 text-stone-400 hover:text-red-600">✕</button>
+                            <button type="button" onclick="deleteOpp(${o.id})" title="Remove" class="px-1 text-stone-400 hover:text-red-600">✕</button>
                           </div>
                         </div>
                       `).join('')}
@@ -529,7 +681,12 @@
                         <td class="p-3">${esc(c.org)}</td>
                         <td class="p-3">${c.days === 0 ? 'Today' : c.days + 'd ago'}</td>
                         <td class="p-3">${c.days > 14 ? '<span class="rounded bg-amber-100 px-2 py-0.5 text-amber-900">⏰ Follow Up</span>' : '<span class="rounded bg-emerald-100 px-2 py-0.5 text-emerald-900">✅ Active</span>'}</td>
-                        <td class="p-3"><button onclick="pingContact(${c.id})" class="rounded border px-2 py-1 hover:bg-stone-50">Mark Pinged</button></td>
+                        <td class="p-3">
+                          <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="pingContact(${c.id})" class="rounded border px-2 py-1 hover:bg-stone-50">Mark Pinged</button>
+                            <button type="button" onclick="deleteContact(${c.id})" title="Delete contact" class="px-1 text-stone-400 hover:text-red-600">✕</button>
+                          </div>
+                        </td>
                       </tr>
                     `).join('')}
                   </tbody>
@@ -552,12 +709,15 @@
                   <div class="rounded-xl border bg-white p-4 text-xs">
                     <div class="flex items-start justify-between gap-2 font-bold">
                       <span>${esc(e.title)}</span>
-                      <span class="shrink-0 text-emerald-700">${esc(e.metric)}</span>
+                      <div class="flex shrink-0 items-center gap-2">
+                        <span class="text-emerald-700">${esc(e.metric)}</span>
+                        <button type="button" onclick="deleteExp(${e.id})" title="Delete project" class="text-stone-400 hover:text-red-600">✕</button>
+                      </div>
                     </div>
                     <p class="mt-1.5 text-[#55534e]">• ${esc(e.bullet)}</p>
                     <div class="mt-2 flex items-center justify-between">
                       <span class="text-[11px] text-[#787774]">Tags: ${esc(e.skills.join(', '))}</span>
-                      <button onclick="copyBullet(${e.id}, '${esc(e.bullet)}')" class="rounded border px-2 py-0.5 text-[11px] hover:bg-stone-50">
+                      <button type="button" onclick="copyBullet(${e.id}, '${esc(e.bullet)}')" class="rounded border px-2 py-0.5 text-[11px] hover:bg-stone-50">
                         ${state.copiedBulletId === e.id ? 'Copied!' : 'Copy Bullet'}
                       </button>
                     </div>
